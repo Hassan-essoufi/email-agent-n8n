@@ -148,6 +148,8 @@ See [docs/setup_guide.md](docs/setup_guide.md) for detailed instructions.
 - GitHub: [@Hassan-essoufi](https://github.com/Hassan-essoufi)
 - Email: hassanessoufi2004@gmail.com
 
+---
+
 ## ⭐ Note
 
 If you find this project useful, consider giving it a star ⭐, it helps a lot!
