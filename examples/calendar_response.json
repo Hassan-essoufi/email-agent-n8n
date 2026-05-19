@@ -1,0 +1,35 @@
+[
+  {
+    "id": "air9ca6ececo9ec943n288hk2k",
+    "summary": "Data Analytics & Science with AI Bootcamp - Batch Start",
+    "start": {
+      "dateTime": "2026-05-25T09:00:00+01:00",
+      "timeZone": "Africa/Casablanca"
+    },
+    "end": {
+      "dateTime": "2026-05-25T10:00:00+01:00",
+      "timeZone": "Africa/Casablanca"
+    },
+    "creator": {
+      "email": "hassanessoufi2004@gmail.com",
+      "self": true
+    },
+    "organizer": {
+      "email": "hassanessoufi2004@gmail.com",
+      "self": true
+    },
+    "description": "The Data Analytics & Science with AI Bootcamp batch begins on 25 May 2026.",
+    "created": "2026-05-19T01:48:13.000Z",
+    "updated": "2026-05-19T01:48:13.946Z",
+    "etag": "\"3558310587893406\"",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=YWlyOWNhNmVjZWNvOWVjOTQzbjI4OGhrMmsgaGFzc2FuZXNzb3VmaTIwMDRAbQ",
+    "iCalUID": "air9ca6ececo9ec943n288hk2k@google.com",
+    "kind": "calendar#event",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 0,
+    "status": "confirmed"
+  }
+]
