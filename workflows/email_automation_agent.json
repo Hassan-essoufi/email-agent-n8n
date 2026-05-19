@@ -1,0 +1,594 @@
+{
+  "name": "email auromation agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1840,
+        -48
+      ],
+      "id": "7842925f-ce34-4d26-ad80-38ab41053739",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1424,
+        -48
+      ],
+      "id": "54e2a053-620e-4142-93c6-789c47f5639f",
+      "name": "Loop Over Items",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"email_id\": \"{{ $json.id }}\",\n  \"thread_id\": \"{{ $json.threadId }}\",\n  \"from\": \"{{ $json.From.replace(/\\\"/g, '\\\\\\\"') }}\",\n  \"subject\": \"{{ $json.Subject.replace(/\\\"/g, '\\\\\\\"') }}\",\n  \"to\": \"{{ $json.To.replace(/\\\"/g, '\\\\\\\"') }}\",\n  \"snippet\": \"{{ $json.snippet.replace(/\\\"/g, '\\\\\\\"') }}\",\n  \"labels\": \"{{ $json.labels.map(l => l.name).join(', ') }}\",\n  \"received_at\": \"{{ new Date(Number($json.internalDate)).toISOString() }}\",\n  \"email_content\": \"From: {{ $json.From.replace(/\\\"/g, '\\\\\\\"') }}\\n\\nSubject: {{ $json.Subject.replace(/\\\"/g, '\\\\\\\"') }}\\n\\nSnippet:\\n{{ $json.snippet.replace(/\\\"/g, '\\\\\\\"') }}\\n\\nLabels:\\n{{ $json.labels.map(l => l.name).join(', ') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        -32
+      ],
+      "id": "58186122-4139-4f1e-80da-bc0f3095f2c1",
+      "name": "Edit Fields",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "promptType": "=define",
+        "text": "=You are a strict email classifier.\n\nClassify the email into exactly one category:\n\nevent\nsheet\n\nReturn \"event\" if the email includes:\n- a meeting\n- a call\n- an interview\n- an appointment\n- a scheduled discussion\n- a calendar activity\n- a specific date or time for an activity\n\nOtherwise return \"sheet\".\n\nRules:\n- Output ONLY one word\n- No explanation\n- No punctuation\n- No markdown\n\nEmail:\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "=You are an email routing assistant.\n\nYour task is to classify every email into ONLY ONE of these categories:\n\n- event\n- sheet\n\nClassification rules:\n- Return \"event\" if the email contains:\n  - meetings\n  - interviews\n  - appointments\n  - calls\n  - schedules\n  - calendar invitations\n  - reminders with date/time\n  - event registrations\n\n- Return \"sheet\" for all other emails:\n  - newsletters\n  - job alerts\n  - promotions\n  - client messages\n  - support emails\n  - updates\n  - invoices\n  - notifications\n\nRules:\n- Reply with ONLY:\n  - event\n  - sheet\n- No explanations\n- No punctuation\n- No extra text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -624,
+        -32
+      ],
+      "id": "7ded315f-a150-47c9-9d7e-86be63d26103",
+      "name": "AI Classifier"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "event",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b79d748d-8038-4a47-b4ea-dac480fad727"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a3c1f9b6-f0db-4605-84f7-68ba4824d897",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "sheet",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -336,
+        -32
+      ],
+      "id": "c57922bd-351f-4416-99a3-72e0d955b28f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "hassanessoufi2004@gmail.com",
+          "mode": "list",
+          "cachedResultName": "hassanessoufi2004@gmail.com"
+        },
+        "start": "={{ $json.start }}",
+        "end": "={{ $json.end }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        -48
+      ],
+      "id": "fca6d658-9262-44e2-9b7f-f73592130234",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "kogebUE0L8xWN5Dh",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        128
+      ],
+      "id": "943bcb3e-8ebe-4b9a-a345-808d61b44549",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "Zt56jAVO3MYdW2x6",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1uBGEXuTy1zQi48ADk0jFjM2NMkPRgE6OgZrgICjE8yU",
+          "mode": "list",
+          "cachedResultName": "email-automation-n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uBGEXuTy1zQi48ADk0jFjM2NMkPRgE6OgZrgICjE8yU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uBGEXuTy1zQi48ADk0jFjM2NMkPRgE6OgZrgICjE8yU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "received_at": "={{ $('Edit Fields').item.json.received_at }}",
+            "from": "={{ $('Edit Fields').item.json.from }}",
+            "summary": "={{ $('AI summary').item.json.output }}",
+            "type": "={{ $('AI Classifier').item.json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -112,
+        288
+      ],
+      "id": "b97804f0-e71f-461c-a894-5e61dc91372c",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P9XHzEVL7b9lJx1Z",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        208
+      ],
+      "id": "59b2420a-9224-4e82-8ef1-9f46ea4519ec",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "Zt56jAVO3MYdW2x6",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Read the email and return ONLY a concise 2-3 sentence summary.\n\nFocus on:\n- what the email is about\n- who sent it\n- what action (if any) is needed\n\nNo preamble.\nNo labels.\nPlain text only.\n\nFrom: {{ $json.from }}\n\nSubject: {{ $json.subject }}\n\nSnippet:\n{{ $json.snippet }}\n\nLabels:\n{{ $json.labels }}",
+        "options": {
+          "systemMessage": "=You are an email summarizer. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -944,
+        -32
+      ],
+      "id": "a1e7796a-6cf6-4b90-8dbf-dd796b25f38e",
+      "name": "AI summary"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        176
+      ],
+      "id": "1103b5d0-c09f-40d7-bfd9-6fe4a53cd037",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Zt56jAVO3MYdW2x6",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $('Edit Fields').item.json.email_id }}",
+        "labelIds": [
+          "UNREAD"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        288
+      ],
+      "id": "621a1037-ea37-43b1-92e2-c8acc05239ce",
+      "name": "Remove label from message",
+      "webhookId": "517d36fd-8761-4116-a1bf-c7707b1de6d8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "e39e8agPHFFnsS1X",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=email:\n{{ $('Edit Fields').item.json.email_content }}",
+        "options": {
+          "systemMessage": "=You are an event extraction assistant.\n\nExtract calendar event information from emails.\n\nReturn ONLY valid JSON in this format:\n\n{\n  \"title\": \"\",\n  \"start\": \"\",\n  \"end\": \"\",\n  \"description\": \"\"\n}\n\nRules:\n- Use ISO 8601 datetime format with timezone offset\n- All times must use Morocco timezone offset (+01:00)\n- Example format: 2026-05-22T14:00:00+01:00\n- If no end time exists, set end to 1 hour after start\n- Keep title concise\n- Description should summarize the meeting/event\n- Return only JSON\n- No markdown\n- No explanations"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        -48
+      ],
+      "id": "f708a9ab-52a2-4d60-a6c8-5706091f37df",
+      "name": "Event Extractor"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {
+          "q": " q    |    is:unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1664,
+        -48
+      ],
+      "id": "adaa9ba4-31a5-4ea3-a141-77b223bb5269",
+      "name": "Get many messages",
+      "webhookId": "c4a985e7-4f35-41f5-a8d9-8eb219f2ac12",
+      "executeOnce": false,
+      "retryOnFail": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "e39e8agPHFFnsS1X",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: JSON.parse($input.first().json.output)\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        -48
+      ],
+      "id": "d5f67d9b-0eca-4ee2-8986-5ce8c877b307",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Classifier": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Event Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Event Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Remove label from message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Remove label from message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI summary": {
+      "main": [
+        [
+          {
+            "node": "AI Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI summary",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove label from message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Extractor": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b85660bd-81a0-44c0-a3fc-550c4bdb7dbf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d92025139a4988a7d5a06c0fe5ab1b5d7d2090e4a3750462807b8587370a480e"
+  },
+  "id": "EGYPyDSUc2kteKRA",
+  "tags": []
+}
