@@ -1,4 +1,4 @@
-# Email Automation Agent — n8n
+# Email Automation Agent-n8n
 
 An intelligent email automation workflow built with **n8n** that continuously monitors your Gmail inbox, classifies every unread email using an AI model, and automatically routes it to the right destination: calendar events go straight into **Google Calendar**, everything else gets logged and summarized in **Google Sheets**.
 
